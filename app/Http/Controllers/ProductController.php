@@ -4,11 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Model\Product;
 use Illuminate\Http\Request;
+use App\Http\Requests\ProductRequest;
 use App\Http\Resources\Product\ProductResource;
 use App\Http\Resources\Product\ProductCollection;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api')->except('index', "show","destroy","update");
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -35,9 +41,18 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        //
+        $product = new Product;
+        $product->name = $request->name;
+        $product->details = $request->description;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->stock = $request->stock;
+        $product->discount = $request->discount;
+        $product->save();
+        $data = new ProductResource($product);
+        return response()->json($data, 201);
     }
 
     /**
@@ -69,9 +84,14 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
-        //
+        // parser details to description
+        $request['details'] = $request->description;
+        unset($request['description']);
+        $product->update($request->all());
+        $data = "product Updated SucessFuly...";
+        return response()->json($data, 200);
     }
 
     /**
@@ -80,8 +100,10 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Product $product)
     {
-        //
+        $product->delete();
+        $data = "Data Successfully Deleted...";
+        return response()->json($data, 200);
     }
 }
